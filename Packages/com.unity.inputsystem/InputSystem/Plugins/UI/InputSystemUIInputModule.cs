@@ -310,8 +310,8 @@ namespace UnityEngine.InputSystem.UI
             }
             else
             {
-                eventData.position = new Vector2(Screen.width / 2f, Screen.height / 2f);
-                eventData.delta = state.screenPosition - eventData.position;
+				eventData.delta = state.screenPosition - eventData.position;
+                eventData.position = m_FPSMode ? new Vector2(Screen.width / 2f, Screen.height / 2f) : state.screenPosition;
             }
 
             // Clear the 'used' flag.
