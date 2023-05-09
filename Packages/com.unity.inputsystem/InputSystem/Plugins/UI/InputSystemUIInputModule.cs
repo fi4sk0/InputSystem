@@ -1,4 +1,4 @@
-#if PACKAGE_DOCS_GENERATION || UNITY_INPUT_SYSTEM_ENABLE_UI
+//#if PACKAGE_DOCS_GENERATION || UNITY_INPUT_SYSTEM_ENABLE_UI
 using System;
 using System.Collections.Generic;
 using UnityEngine.EventSystems;
@@ -62,6 +62,12 @@ namespace UnityEngine.InputSystem.UI
         {
             get => m_DeselectOnBackgroundClick;
             set => m_DeselectOnBackgroundClick = value;
+        }
+        
+        public bool FPSMode
+        {
+            get => m_FPSMode;
+            set => m_FPSMode = value;
         }
 
         /// <summary>
@@ -281,7 +287,7 @@ namespace UnityEngine.InputSystem.UI
 
             // Sync position.
             var pointerType = eventData.pointerType;
-            if (pointerType == UIPointerType.MouseOrPen && Cursor.lockState == CursorLockMode.Locked)
+            if (pointerType == UIPointerType.MouseOrPen && Cursor.lockState == CursorLockMode.Locked && !m_FPSMode)
             {
                 eventData.position = m_CursorLockBehavior == CursorLockBehavior.OutsideScreen ?
                     new Vector2(-1, -1) :
@@ -304,8 +310,8 @@ namespace UnityEngine.InputSystem.UI
             }
             else
             {
+                eventData.position = new Vector2(Screen.width / 2f, Screen.height / 2f);
                 eventData.delta = state.screenPosition - eventData.position;
-                eventData.position = state.screenPosition;
             }
 
             // Clear the 'used' flag.
@@ -338,7 +344,7 @@ namespace UnityEngine.InputSystem.UI
             // also means that we will invariably raycast on every update.
             // However, after that, early out at this point when there's no changes to the pointer state (except
             // for tracked pointers as the tracking origin may have moved).
-            if (!state.changedThisFrame && (xrTrackingOrigin == null || state.pointerType != UIPointerType.Tracked))
+            if (!m_FPSMode && !state.changedThisFrame && (xrTrackingOrigin == null || state.pointerType != UIPointerType.Tracked))
                 return;
 
             ProcessPointerButton(ref state.leftButton, eventData);
@@ -561,9 +567,9 @@ namespace UnityEngine.InputSystem.UI
 
         private void ProcessPointerButtonDrag(ref PointerModel.ButtonState button, ExtendedPointerEventData eventData)
         {
-            if (!eventData.IsPointerMoving() ||
-                (eventData.pointerType == UIPointerType.MouseOrPen && Cursor.lockState == CursorLockMode.Locked) ||
-                eventData.pointerDrag == null)
+            if ((!eventData.IsPointerMoving() ||
+                 (eventData.pointerType == UIPointerType.MouseOrPen && Cursor.lockState == CursorLockMode.Locked) ||
+                 eventData.pointerDrag == null) && !m_FPSMode)
                 return;
 
             // Detect drags.
@@ -2311,7 +2317,8 @@ namespace UnityEngine.InputSystem.UI
         [SerializeField, HideInInspector] private InputActionReference m_ScrollWheelAction;
         [SerializeField, HideInInspector] private InputActionReference m_TrackedDevicePositionAction;
         [SerializeField, HideInInspector] private InputActionReference m_TrackedDeviceOrientationAction;
-
+        
+        [SerializeField] private bool m_FPSMode = false;
         [SerializeField] private bool m_DeselectOnBackgroundClick = true;
         [SerializeField] private UIPointerBehavior m_PointerBehavior = UIPointerBehavior.SingleMouseOrPenButMultiTouchAndTrack;
         [SerializeField, HideInInspector] internal CursorLockBehavior m_CursorLockBehavior = CursorLockBehavior.OutsideScreen;
@@ -2371,4 +2378,4 @@ namespace UnityEngine.InputSystem.UI
         }
     }
 }
-#endif
+//#endif
